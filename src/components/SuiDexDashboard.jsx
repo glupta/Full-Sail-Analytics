@@ -195,8 +195,8 @@ export default function SuiDexDashboard() {
     return sortConfig.direction === 'desc' ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
   };
 
-  // If GraphQL mode, render the GraphQL dashboard (placed after all hooks)
-  if (viewMode === 'graphql') {
+  // If GraphQL or SDK mode, render the GraphQL dashboard (placed after all hooks)
+  if (viewMode === 'graphql' || viewMode === 'sdk') {
     return (
       <div className="min-h-screen animated-bg text-white p-6 lg:p-8">
         {/* Header with toggle - matches DefiLlama layout */}
@@ -206,30 +206,24 @@ export default function SuiDexDashboard() {
               Sui DEX Capital Efficiency
             </h1>
             <p className="text-slate-400 mt-2">
-              Compare LP yields and capital efficiency across Sui DEXs
+              {viewMode === 'sdk'
+                ? 'Direct data via DEX SDKs (Cetus SDK, Bluefin API, Full Sail SDK)'
+                : 'Real-time on-chain data via Sui GraphQL RPC'}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Data Source Toggle */}
-            <div className="flex bg-slate-800/50 border border-slate-700 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('defillama')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'defillama'
-                  ? 'bg-[#7D99FD] text-white'
-                  : 'text-slate-400 hover:text-white'
-                  }`}
+            {/* Data Source Dropdown */}
+            <div className="relative">
+              <select
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value)}
+                className="appearance-none bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm font-medium cursor-pointer focus:outline-none focus:border-[#7D99FD] transition-colors"
               >
-                DefiLlama
-              </button>
-              <button
-                onClick={() => setViewMode('graphql')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'graphql'
-                  ? 'bg-[#7D99FD] text-white'
-                  : 'text-slate-400 hover:text-white'
-                  }`}
-              >
-                GraphQL
-              </button>
+                <option value="defillama">DefiLlama</option>
+                <option value="graphql">GraphQL</option>
+                <option value="sdk">DEX SDK</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
             <span className="text-slate-500 text-sm">
               Updated {new Date().toLocaleTimeString()}
@@ -243,8 +237,8 @@ export default function SuiDexDashboard() {
             </button>
           </div>
         </div>
-        {/* Render GraphQL Dashboard content */}
-        <GraphQLDashboard embedded={true} />
+        {/* Render GraphQL Dashboard content with appropriate data source */}
+        <GraphQLDashboard embedded={true} initialDataSource={viewMode} />
       </div>
     );
   }
@@ -262,26 +256,18 @@ export default function SuiDexDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Data Source Toggle */}
-          <div className="flex bg-slate-800/50 border border-slate-700 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('defillama')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'defillama'
-                ? 'bg-[#7D99FD] text-white'
-                : 'text-slate-400 hover:text-white'
-                }`}
+          {/* Data Source Dropdown */}
+          <div className="relative">
+            <select
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value)}
+              className="appearance-none bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm font-medium cursor-pointer focus:outline-none focus:border-[#7D99FD] transition-colors"
             >
-              DefiLlama
-            </button>
-            <button
-              onClick={() => setViewMode('graphql')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'graphql'
-                ? 'bg-[#7D99FD] text-white'
-                : 'text-slate-400 hover:text-white'
-                }`}
-            >
-              GraphQL
-            </button>
+              <option value="defillama">DefiLlama</option>
+              <option value="graphql">GraphQL</option>
+              <option value="sdk">DEX SDK</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
           {lastUpdated && (
             <span className="text-slate-500 text-sm">

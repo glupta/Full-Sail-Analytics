@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, TrendingUp, Droplets, Activity, ChevronUp, ChevronDown, Search, Database, Wifi, WifiOff, Settings, Check, X, Cpu } from 'lucide-react';
+import { RefreshCw, TrendingUp, Droplets, Activity, ChevronUp, ChevronDown, Search, Database, Wifi, WifiOff, Settings, Check, X } from 'lucide-react';
 import { fetchGraphQLPoolData, clearGraphQLCache } from '../lib/graphql-data-source';
 import { fetchPoolData as fetchDefiLlamaData } from '../lib/data-source';
 import { fetchSDKPoolData } from '../lib/sdk-data-source';
@@ -187,8 +187,8 @@ const ColumnSelector = ({ columns, visibleColumns, setVisibleColumns }) => {
     );
 };
 
-const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
-    const [dataSource, setDataSource] = useState('graphql'); // 'graphql', 'defillama', or 'sdk'
+const GraphQLDashboard = ({ embedded = false, renderHeaderControls, initialDataSource = 'graphql' }) => {
+    const [dataSource, setDataSource] = useState(initialDataSource); // 'graphql', 'defillama', or 'sdk'
     const [pools, setPools] = useState([]);
     const [defiLlamaPools, setDefiLlamaPools] = useState([]);
     const [dexStats, setDexStats] = useState({});
@@ -355,36 +355,18 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
                                 </span>
                             )}
 
-                            {/* Data Source Toggle */}
-                            <div className="flex bg-slate-800/50 border border-slate-700 rounded-lg p-1">
-                                <button
-                                    onClick={() => setDataSource('sdk')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1 ${dataSource === 'sdk'
-                                        ? 'bg-[#7D99FD] text-white'
-                                        : 'text-slate-400 hover:text-white'
-                                        }`}
+                            {/* Data Source Dropdown */}
+                            <div className="relative">
+                                <select
+                                    value={dataSource}
+                                    onChange={(e) => setDataSource(e.target.value)}
+                                    className="appearance-none bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm font-medium cursor-pointer focus:outline-none focus:border-[#7D99FD] transition-colors"
                                 >
-                                    <Cpu size={14} />
-                                    SDK
-                                </button>
-                                <button
-                                    onClick={() => setDataSource('graphql')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${dataSource === 'graphql'
-                                        ? 'bg-[#7D99FD] text-white'
-                                        : 'text-slate-400 hover:text-white'
-                                        }`}
-                                >
-                                    GraphQL
-                                </button>
-                                <button
-                                    onClick={() => setDataSource('defillama')}
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${dataSource === 'defillama'
-                                        ? 'bg-[#7D99FD] text-white'
-                                        : 'text-slate-400 hover:text-white'
-                                        }`}
-                                >
-                                    DefiLlama
-                                </button>
+                                    <option value="defillama">DefiLlama</option>
+                                    <option value="graphql">GraphQL</option>
+                                    <option value="sdk">DEX SDK</option>
+                                </select>
+                                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                             </div>
 
                             {/* Column Selector */}
