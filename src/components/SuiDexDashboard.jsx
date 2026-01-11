@@ -4,6 +4,7 @@ import { RefreshCw, TrendingUp, Droplets, Activity, ChevronUp, ChevronDown, Sear
 import { fetchPoolData as fetchDataFromSource, getDataSourceMode } from '../lib/data-source';
 import PoolEfficiencyAnalysis from './PoolEfficiencyAnalysis';
 import DexHistoricalChart from './DexHistoricalChart';
+import GraphQLDashboard from './GraphQLDashboard';
 
 // DEX Colors (Full Sail Brand)
 const DEX_COLORS = {
@@ -140,6 +141,7 @@ const StatCard = ({ icon: Icon, label, value, loading, variant = 'cyan' }) => (
 );
 
 export default function SuiDexDashboard() {
+  const [viewMode, setViewMode] = useState('defillama'); // 'defillama' or 'graphql'
   const [pools, setPools] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -258,6 +260,50 @@ export default function SuiDexDashboard() {
     return sortConfig.direction === 'desc' ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
   };
 
+  // If GraphQL mode, render the GraphQL dashboard (placed after all hooks)
+  if (viewMode === 'graphql') {
+    return (
+      <div className="min-h-screen animated-bg text-white p-6 lg:p-8">
+        {/* Header with toggle */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#7D99FD] via-blue-400 to-purple-400 bg-clip-text text-transparent glow-text">
+              Sui DEX Capital Efficiency
+            </h1>
+            <p className="text-slate-400 mt-2">
+              Compare LP yields and capital efficiency across Sui DEXs
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Data Source Toggle */}
+            <div className="flex bg-slate-800/50 border border-slate-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('defillama')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'defillama'
+                    ? 'bg-[#7D99FD] text-white'
+                    : 'text-slate-400 hover:text-white'
+                  }`}
+              >
+                DefiLlama
+              </button>
+              <button
+                onClick={() => setViewMode('graphql')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'graphql'
+                    ? 'bg-[#7D99FD] text-white'
+                    : 'text-slate-400 hover:text-white'
+                  }`}
+              >
+                GraphQL
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Render GraphQL Dashboard content */}
+        <GraphQLDashboard embedded={true} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen animated-bg text-white p-6 lg:p-8">
       {/* Header */}
@@ -270,7 +316,28 @@ export default function SuiDexDashboard() {
             Compare LP yields and capital efficiency across Sui DEXs
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Data Source Toggle */}
+          <div className="flex bg-slate-800/50 border border-slate-700 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('defillama')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'defillama'
+                ? 'bg-[#7D99FD] text-white'
+                : 'text-slate-400 hover:text-white'
+                }`}
+            >
+              DefiLlama
+            </button>
+            <button
+              onClick={() => setViewMode('graphql')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'graphql'
+                ? 'bg-[#7D99FD] text-white'
+                : 'text-slate-400 hover:text-white'
+                }`}
+            >
+              GraphQL
+            </button>
+          </div>
           {lastUpdated && (
             <span className="text-slate-500 text-sm">
               Updated {lastUpdated.toLocaleTimeString()}
