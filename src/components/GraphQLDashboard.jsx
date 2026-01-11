@@ -449,21 +449,25 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls, initialDataS
                         />
                     </div>
 
-                    {/* DEX Filters */}
-                    <div className="flex gap-2">
-                        {Object.entries(DEX_COLORS).map(([dex, color]) => (
-                            <button
-                                key={dex}
-                                onClick={() => toggleDex(dex)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeDexes.includes(dex)
-                                    ? 'text-white'
-                                    : 'bg-slate-800/50 text-slate-500'
-                                    }`}
-                                style={activeDexes.includes(dex) ? { backgroundColor: `${color}30`, borderColor: color, border: '1px solid' } : {}}
-                            >
-                                {dex}
-                            </button>
-                        ))}
+                    {/* DEX Filter Dropdown */}
+                    <div className="relative">
+                        <select
+                            value=""
+                            onChange={(e) => {
+                                if (e.target.value) toggleDex(e.target.value);
+                            }}
+                            className="appearance-none bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm font-medium cursor-pointer focus:outline-none focus:border-[#7D99FD] transition-colors"
+                        >
+                            <option value="" disabled>
+                                DEX: {activeDexes.length === 3 ? 'All' : activeDexes.length === 0 ? 'None' : activeDexes.join(', ')}
+                            </option>
+                            {Object.entries(DEX_COLORS).map(([dex]) => (
+                                <option key={dex} value={dex}>
+                                    {activeDexes.includes(dex) ? '✓ ' : '  '}{dex}
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
 
                     {/* Column Selector */}

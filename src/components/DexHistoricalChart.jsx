@@ -213,8 +213,8 @@ const DexHistoricalChart = () => {
                                 key={m.key}
                                 onClick={() => setMetric(m.key)}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${metric === m.key
-                                        ? 'bg-[#7D99FD]/20 text-[#7D99FD]'
-                                        : 'text-slate-400 hover:text-white'
+                                    ? 'bg-[#7D99FD]/20 text-[#7D99FD]'
+                                    : 'text-slate-400 hover:text-white'
                                     }`}
                                 title={m.description}
                             >
@@ -230,8 +230,8 @@ const DexHistoricalChart = () => {
                                 key={p.days}
                                 onClick={() => setPeriod(p.days)}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${period === p.days
-                                        ? 'bg-blue-500/20 text-blue-400'
-                                        : 'text-slate-400 hover:text-white'
+                                    ? 'bg-blue-500/20 text-blue-400'
+                                    : 'text-slate-400 hover:text-white'
                                     }`}
                             >
                                 {p.label}
