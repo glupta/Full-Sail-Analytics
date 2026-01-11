@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, TrendingUp, Droplets, Activity, ChevronUp, ChevronDown, Search, Database, Wifi, WifiOff, Settings, Check, X } from 'lucide-react';
+import { RefreshCw, TrendingUp, Droplets, Activity, ChevronUp, ChevronDown, Search, Database, Wifi, WifiOff, Settings, Check, X, Cpu } from 'lucide-react';
 import { fetchGraphQLPoolData, clearGraphQLCache } from '../lib/graphql-data-source';
 import { fetchPoolData as fetchDefiLlamaData } from '../lib/data-source';
+import { fetchSDKPoolData } from '../lib/sdk-data-source';
 
 // DEX Colors (Full Sail Brand)
 const DEX_COLORS = {
@@ -187,7 +188,7 @@ const ColumnSelector = ({ columns, visibleColumns, setVisibleColumns }) => {
 };
 
 const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
-    const [dataSource, setDataSource] = useState('graphql'); // 'graphql' or 'defillama'
+    const [dataSource, setDataSource] = useState('graphql'); // 'graphql', 'defillama', or 'sdk'
     const [pools, setPools] = useState([]);
     const [defiLlamaPools, setDefiLlamaPools] = useState([]);
     const [dexStats, setDexStats] = useState({});
@@ -203,27 +204,33 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
     const fetchAllData = async (forceRefresh = false) => {
         setLoading(true);
         try {
-            // Fetch both sources in parallel for cross-checking
-            const [graphqlData, defiLlamaData] = await Promise.all([
-                fetchGraphQLPoolData({ forceRefresh }),
-                fetchDefiLlamaData({ forceRefresh }),
-            ]);
+            // Fetch data based on selected source
+            let primaryData;
 
-            // Store DefiLlama pools for cross-reference
-            setDefiLlamaPools(defiLlamaData.pools || []);
-
-            // Use selected data source for display
-            if (dataSource === 'graphql') {
-                setPools(graphqlData.pools);
-                setDexStats(graphqlData.dexStats);
-                setSummary(graphqlData.summary);
-                setFetchStatus(graphqlData.fetchStatus || {});
+            if (dataSource === 'sdk') {
+                const [sdkData, defiLlamaData] = await Promise.all([
+                    fetchSDKPoolData({ forceRefresh }),
+                    fetchDefiLlamaData({ forceRefresh }),
+                ]);
+                setDefiLlamaPools(defiLlamaData.pools || []);
+                primaryData = sdkData;
+            } else if (dataSource === 'graphql') {
+                const [graphqlData, defiLlamaData] = await Promise.all([
+                    fetchGraphQLPoolData({ forceRefresh }),
+                    fetchDefiLlamaData({ forceRefresh }),
+                ]);
+                setDefiLlamaPools(defiLlamaData.pools || []);
+                primaryData = graphqlData;
             } else {
-                setPools(defiLlamaData.pools);
-                setDexStats(defiLlamaData.dexStats);
-                setSummary(defiLlamaData.summary);
-                setFetchStatus({ 'Full Sail': 'success', 'Cetus': 'success', 'Bluefin': 'success' });
+                const defiLlamaData = await fetchDefiLlamaData({ forceRefresh });
+                setDefiLlamaPools(defiLlamaData.pools || []);
+                primaryData = defiLlamaData;
             }
+
+            setPools(primaryData.pools || []);
+            setDexStats(primaryData.dexStats || {});
+            setSummary(primaryData.summary || { totalTVL: 0, totalVolume24h: 0, totalPools: 0 });
+            setFetchStatus(primaryData.fetchStatus || { 'Full Sail': 'success', 'Cetus': 'success', 'Bluefin': 'success' });
 
             setLastUpdated(new Date());
         } catch (error) {
@@ -332,7 +339,11 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
                                 </h1>
                             </div>
                             <p className="text-slate-400 mt-1">
-                                {dataSource === 'graphql' ? 'Real-time on-chain data via Sui GraphQL RPC' : 'Aggregated data via DefiLlama API'}
+                                {dataSource === 'sdk'
+                                    ? 'Direct data via DEX SDKs (Cetus SDK, Bluefin API, Full Sail SDK)'
+                                    : dataSource === 'graphql'
+                                        ? 'Real-time on-chain data via Sui GraphQL RPC'
+                                        : 'Aggregated data via DefiLlama API'}
                             </p>
                         </div>
 
@@ -346,6 +357,16 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
 
                             {/* Data Source Toggle */}
                             <div className="flex bg-slate-800/50 border border-slate-700 rounded-lg p-1">
+                                <button
+                                    onClick={() => setDataSource('sdk')}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1 ${dataSource === 'sdk'
+                                        ? 'bg-[#7D99FD] text-white'
+                                        : 'text-slate-400 hover:text-white'
+                                        }`}
+                                >
+                                    <Cpu size={14} />
+                                    SDK
+                                </button>
                                 <button
                                     onClick={() => setDataSource('graphql')}
                                     className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${dataSource === 'graphql'
@@ -389,10 +410,12 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
 
 
 
-                {/* Connection Status (only for GraphQL) */}
-                {dataSource === 'graphql' && (
+                {/* Connection Status (for GraphQL and SDK modes) */}
+                {(dataSource === 'graphql' || dataSource === 'sdk') && (
                     <div className="glass-card rounded-xl p-4">
-                        <h3 className="text-sm font-medium text-slate-400 mb-3">GraphQL Connection Status</h3>
+                        <h3 className="text-sm font-medium text-slate-400 mb-3">
+                            {dataSource === 'sdk' ? 'SDK Connection Status' : 'GraphQL Connection Status'}
+                        </h3>
                         <div className="flex flex-wrap gap-4">
                             {Object.entries(DEX_COLORS).map(([dex, color]) => (
                                 <div key={dex} className="flex items-center gap-2">
@@ -557,9 +580,11 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
 
                 {/* Data source note */}
                 <div className="text-center text-xs text-slate-500">
-                    {dataSource === 'graphql'
-                        ? 'Data fetched directly from Sui GraphQL RPC • Pool contracts queried on-chain'
-                        : 'Data aggregated from DefiLlama API'
+                    {dataSource === 'sdk'
+                        ? 'Data fetched via DEX SDKs • Cetus SDK • Bluefin Spot API • Full Sail SDK'
+                        : dataSource === 'graphql'
+                            ? 'Data fetched directly from Sui GraphQL RPC • Pool contracts queried on-chain'
+                            : 'Data aggregated from DefiLlama API'
                     }
                 </div>
             </div >
