@@ -2,13 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { fetchSuiFees, fetchSuiHistoricalVolume } from '../lib/fetch-defillama';
-
-// DEX Colors (Full Sail Brand)
-const DEX_COLORS = {
-    'Full Sail': '#7D99FD',
-    'Cetus': '#10b981',
-    'Bluefin': '#3b82f6',
-};
+import { DEX_COLORS } from '../utils/constants';
+import { formatNumber } from '../utils/format';
 
 // Protocol slugs for TVL historical data
 const PROTOCOL_SLUGS = {
@@ -34,13 +29,6 @@ const PERIODS = [
 ];
 
 // Format helpers
-const formatNumber = (num) => {
-    if (!num || isNaN(num)) return '$0';
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
-    return `$${num.toFixed(0)}`;
-};
-
 const formatPercent = (num) => {
     if (!num || isNaN(num)) return '0%';
     return `${(num * 100).toFixed(2)}%`;
