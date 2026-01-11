@@ -101,10 +101,11 @@ async function testFullSailSDK() {
     ];
 
     try {
-        const FullSailSDK = (await import('@fullsailfinance/sdk')).default;
+        // Use named import - initFullSailSDK returns an SDK instance synchronously
+        const { initFullSailSDK } = await import('@fullsailfinance/sdk');
 
         console.log('Initializing Full Sail SDK...');
-        await FullSailSDK.initFullSailSDK({ network: 'mainnet-production' });
+        const sdk = initFullSailSDK({ network: 'mainnet-production' });
 
         console.log('Fetching sample pools...');
         const results = [];
@@ -112,7 +113,8 @@ async function testFullSailSDK() {
         for (const { id, name } of POOL_IDS) {
             try {
                 console.log(`  Fetching ${name}...`);
-                const pool = await FullSailSDK.Pool.getByIdFromChain(id);
+                // Access Pool module from the SDK instance
+                const pool = await sdk.Pool.getByIdFromChain(id);
                 if (pool) {
                     console.log(`    ✅ ${name}: TVL=${pool.tvl || 'N/A'}`);
                     results.push({ name, pool });

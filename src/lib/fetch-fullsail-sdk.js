@@ -4,8 +4,8 @@
  * Docs: https://www.npmjs.com/package/@fullsailfinance/sdk
  */
 
-// Import the Full Sail SDK - using default export
-import FullSailSDK from '@fullsailfinance/sdk';
+// Import the Full Sail SDK - initFullSailSDK returns an SDK instance
+import { initFullSailSDK } from '@fullsailfinance/sdk';
 
 // Full Sail pool IDs (from app.fullsail.finance/liquidity - extracted 2026-01-11)
 const FULLSAIL_POOL_IDS = [
@@ -23,25 +23,25 @@ const FULLSAIL_POOL_IDS = [
     { id: '0x4c46799974cde779100204a28bc131fa70c76d08c71e19eb87903ac9fedf0b00', name: 'MMT/USDC' },
 ];
 
-// SDK instance
-let sdkInitialized = false;
+// SDK instance (singleton)
+let sdkInstance = null;
 
 /**
- * Initialize the Full Sail SDK
+ * Get or initialize the Full Sail SDK
  */
-async function initSDK() {
-    if (!sdkInitialized) {
+function getSDK() {
+    if (!sdkInstance) {
         console.log('[Full Sail SDK] Initializing...');
         try {
-            // Initialize SDK for mainnet using the correct function
-            await FullSailSDK.initFullSailSDK({ network: 'mainnet-production' });
-            sdkInitialized = true;
+            // initFullSailSDK returns the SDK instance directly (not a promise)
+            sdkInstance = initFullSailSDK({ network: 'mainnet-production' });
             console.log('[Full Sail SDK] Initialized successfully');
         } catch (error) {
             console.warn('[Full Sail SDK] Initialization failed:', error.message);
             throw error;
         }
     }
+    return sdkInstance;
 }
 
 /**
@@ -49,8 +49,9 @@ async function initSDK() {
  */
 async function fetchPoolById(poolId, name) {
     try {
-        // Use Pool.getByIdFromChain for real-time blockchain data
-        const chainPool = await FullSailSDK.Pool.getByIdFromChain(poolId);
+        const sdk = getSDK();
+        // Use sdk.Pool.getByIdFromChain for real-time blockchain data
+        const chainPool = await sdk.Pool.getByIdFromChain(poolId);
 
         if (!chainPool) {
             console.warn(`[Full Sail SDK] Pool ${name} not found`);
@@ -88,7 +89,8 @@ async function fetchPoolById(poolId, name) {
 
         // Try backend API as fallback
         try {
-            const backendPool = await FullSailSDK.Pool.getById(poolId);
+            const sdk = getSDK();
+            const backendPool = await sdk.Pool.getById(poolId);
             if (backendPool) {
                 return {
                     id: poolId,
@@ -125,7 +127,7 @@ export async function fetchFullSailPools() {
 
     try {
         // Initialize SDK first
-        await initSDK();
+        getSDK();
 
         // Fetch all pools in parallel
         const poolPromises = FULLSAIL_POOL_IDS.map(({ id, name }) =>

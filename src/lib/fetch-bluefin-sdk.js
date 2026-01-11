@@ -4,8 +4,11 @@
  * Docs: https://bluefin-exchange.readme.io/v2.0.1/reference/spot-api-introduction
  */
 
-// Bluefin Spot API base URL (mainnet)
-const BLUEFIN_SPOT_API = 'https://swap.api.sui-prod.bluefin.io';
+// Bluefin Spot API - use Vite proxy in dev to bypass CORS
+// In production, this would need a backend proxy or CORS-enabled endpoint
+const BLUEFIN_SPOT_API = import.meta.env.DEV
+    ? '/api/bluefin'
+    : 'https://swap.api.sui-prod.bluefin.io';
 
 // Known Bluefin pools for fallback
 const KNOWN_POOLS = [

@@ -167,4 +167,35 @@ describe('GraphQLDashboard', () => {
             expect(screen.getByText(/Sui GraphQL RPC/)).toBeInTheDocument();
         });
     });
+
+    // ===== DATA ACCURACY TESTS =====
+
+    it('displays correct total TVL from aggregated pools', async () => {
+        render(<GraphQLDashboard embedded={true} />);
+
+        await waitFor(() => {
+            // Mock returns 4.5M total TVL (2M + 1.5M + 1M)
+            expect(screen.getByText('$4.50M')).toBeInTheDocument();
+        });
+    });
+
+    it('displays correct pool count from aggregated data', async () => {
+        render(<GraphQLDashboard embedded={true} />);
+
+        await waitFor(() => {
+            // Mock returns 3 pools
+            expect(screen.getByText('3')).toBeInTheDocument();
+        });
+    });
+
+    it('renders all pool names from mock data', async () => {
+        render(<GraphQLDashboard embedded={true} />);
+
+        await waitFor(() => {
+            expect(screen.getByText('SUI/USDC')).toBeInTheDocument();
+            expect(screen.getByText('SUI/USDT')).toBeInTheDocument();
+            expect(screen.getByText('SUI/WETH')).toBeInTheDocument();
+        });
+    });
 });
+
