@@ -59,15 +59,21 @@ function parsePoolData(node, knownPool) {
         const poolId = node.address;
         const name = knownPool?.name || 'Unknown';
 
+        // Debug: log the actual field names we receive
+        if (json) {
+            console.log(`[Full Sail] Pool ${name} fields:`, Object.keys(json));
+            console.log(`[Full Sail] Pool ${name} data:`, JSON.stringify(json).slice(0, 500));
+        }
+
         // Extract reserves and calculate TVL
         let tvl = 0;
         let reserveA = 0;
         let reserveB = 0;
 
         if (json) {
-            // Full Sail uses x_reserve and y_reserve for AMM pools
-            reserveA = BigInt(json.x_reserve || json.reserve_x || json.coin_x || json.balance_x || '0');
-            reserveB = BigInt(json.y_reserve || json.reserve_y || json.coin_y || json.balance_y || '0');
+            // Full Sail AMM uses coin_x_reserve and coin_y_reserve based on typical Move AMM patterns
+            reserveA = BigInt(json.coin_x_reserve || json.x_reserve || json.reserve_x || json.coin_x || json.balance_x || '0');
+            reserveB = BigInt(json.coin_y_reserve || json.y_reserve || json.reserve_y || json.coin_y || json.balance_y || '0');
 
             // Rough TVL estimate 
             const isStablePair = name.includes('USD');

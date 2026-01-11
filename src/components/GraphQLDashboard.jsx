@@ -430,38 +430,38 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
                     />
                 </div>
 
-                {/* DEX Filter */}
-                <div className="flex flex-wrap gap-2">
-                    {Object.entries(DEX_COLORS).map(([dex, color]) => (
-                        <button
-                            key={dex}
-                            onClick={() => toggleDex(dex)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeDexes.includes(dex)
-                                ? 'text-white'
-                                : 'bg-slate-800/50 text-slate-500'
-                                }`}
-                            style={activeDexes.includes(dex) ? { backgroundColor: `${color}30`, borderColor: color, border: '1px solid' } : {}}
-                        >
-                            {dex}
-                        </button>
-                    ))}
-                </div>
+                {/* Search + DEX Filter + Columns - All inline */}
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Search (left side) */}
+                    <div className="relative flex-1 min-w-[200px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search pools..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#7D99FD]"
+                        />
+                    </div>
 
-                {/* Search */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search pools..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#7D99FD]"
-                    />
-                </div>
+                    {/* DEX Filters */}
+                    <div className="flex gap-2">
+                        {Object.entries(DEX_COLORS).map(([dex, color]) => (
+                            <button
+                                key={dex}
+                                onClick={() => toggleDex(dex)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeDexes.includes(dex)
+                                    ? 'text-white'
+                                    : 'bg-slate-800/50 text-slate-500'
+                                    }`}
+                                style={activeDexes.includes(dex) ? { backgroundColor: `${color}30`, borderColor: color, border: '1px solid' } : {}}
+                            >
+                                {dex}
+                            </button>
+                        ))}
+                    </div>
 
-                {/* Pool Table Header with Column Selector */}
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-white">Pool Analytics</h3>
+                    {/* Column Selector */}
                     <ColumnSelector
                         columns={COLUMN_CONFIG}
                         visibleColumns={visibleColumns}
