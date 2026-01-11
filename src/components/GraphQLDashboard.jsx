@@ -162,6 +162,11 @@ const ColumnSelector = ({ columns, visibleColumns, setVisibleColumns }) => {
                                         {columnsByGroup[groupKey].map(col => (
                                             <label
                                                 key={col.key}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    toggleColumn(col.key);
+                                                }}
                                                 className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-slate-700/50 ${col.required ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 <div className={`w-4 h-4 rounded border flex items-center justify-center ${visibleColumns.includes(col.key)

@@ -95,7 +95,8 @@ function parsePool(pool) {
 }
 
 /**
- * Fetch all Bluefin pools via API/SDK
+ * Fetch all Bluefin pools via native Spot API
+ * Returns known pools with placeholder data if API is unavailable
  * @returns {Promise<Array>} Array of normalized pool objects
  */
 export async function fetchBluefinPools() {
@@ -117,8 +118,8 @@ export async function fetchBluefinPools() {
             return topPools;
         }
 
-        // Fallback: return known pools with placeholder data
-        console.log('[Bluefin SDK] API unavailable, using fallback data');
+        // Fallback: return known pools with placeholder data (no DefiLlama)
+        console.log('[Bluefin SDK] Spot API unavailable, using placeholder data');
         return KNOWN_POOLS.map(p => ({
             id: p.id,
             name: p.name,

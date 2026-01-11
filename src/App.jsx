@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw, ChevronDown } from 'lucide-react';
 
 // Dashboard components
@@ -6,13 +6,40 @@ import DefiLlamaDashboard from './components/DefiLlamaDashboard';
 import GraphQLDashboard from './components/GraphQLDashboard';
 
 /**
+ * Get initial data source from URL parameter
+ * Supports ?source=sdk, ?source=graphql, ?source=defillama
+ */
+function getInitialDataSource() {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get('source');
+    if (source && ['sdk', 'graphql', 'defillama'].includes(source)) {
+      return source;
+    }
+  }
+  return 'defillama';
+}
+
+/**
  * App - Root component with data source routing
  * 
  * The data source dropdown lives here and determines which dashboard to render.
+ * 
+ * URL Parameters:
+ * - ?source=sdk - Load DEX SDK dashboard
+ * - ?source=graphql - Load GraphQL dashboard  
+ * - ?source=defillama - Load DefiLlama dashboard (default)
  */
 export default function App() {
-  const [dataSource, setDataSource] = useState('defillama');
+  const [dataSource, setDataSource] = useState(getInitialDataSource);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Sync URL with data source changes
+  useEffect(() => {
+    const url = new URL(window.location);
+    url.searchParams.set('source', dataSource);
+    window.history.replaceState({}, '', url);
+  }, [dataSource]);
 
   const handleRefresh = () => {
     setLastUpdated(new Date());
@@ -41,13 +68,15 @@ export default function App() {
           {/* Data Source Dropdown */}
           <div className="relative">
             <select
+              id="data-source-selector"
+              data-testid="data-source-selector"
               value={dataSource}
               onChange={(e) => setDataSource(e.target.value)}
               className="appearance-none bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 pr-8 text-white text-sm font-medium cursor-pointer focus:outline-none focus:border-[#7D99FD] transition-colors"
             >
               <option value="defillama">DefiLlama</option>
-              <option value="graphql">GraphQL</option>
               <option value="sdk">DEX SDK</option>
+              <option value="graphql">GraphQL</option>
             </select>
             <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
