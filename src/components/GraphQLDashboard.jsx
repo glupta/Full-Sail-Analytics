@@ -387,23 +387,28 @@ const GraphQLDashboard = ({ embedded = false }) => {
                     </div>
                 )}
 
-                {/* Embedded mode: just show controls inline */}
+                {/* Embedded mode: show description and controls */}
                 {embedded && (
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <ColumnSelector
-                            columns={COLUMN_CONFIG}
-                            visibleColumns={visibleColumns}
-                            setVisibleColumns={setVisibleColumns}
-                        />
-                        <button
-                            onClick={() => fetchAllData(true)}
-                            className="btn-primary flex items-center gap-2 px-4 py-2 rounded-lg"
-                            disabled={loading}
-                            aria-label="Refresh data"
-                        >
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                            Refresh
-                        </button>
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
+                        <p className="text-slate-400 text-sm">
+                            Real-time on-chain data via Sui GraphQL RPC
+                        </p>
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <ColumnSelector
+                                columns={COLUMN_CONFIG}
+                                visibleColumns={visibleColumns}
+                                setVisibleColumns={setVisibleColumns}
+                            />
+                            <button
+                                onClick={() => fetchAllData(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#7D99FD] to-blue-600 hover:from-[#9DB5FF] hover:to-blue-500 rounded-lg font-medium transition-all duration-300 shadow-lg shadow-[#7D99FD]/20 text-sm"
+                                disabled={loading}
+                                aria-label="Refresh data"
+                            >
+                                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                                Refresh
+                            </button>
+                        </div>
                     </div>
                 )}
 

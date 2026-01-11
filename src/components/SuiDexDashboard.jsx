@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, TrendingUp, Droplets, Activity, ChevronUp, ChevronDown, Search, ExternalLink } from 'lucide-react';
+import { RefreshCw, TrendingUp, Droplets, ChevronUp, ChevronDown } from 'lucide-react';
 // Unified data source (supports DefiLlama, GraphQL, and hybrid modes)
 import { fetchPoolData as fetchDataFromSource, getDataSourceMode } from '../lib/data-source';
 import PoolEfficiencyAnalysis from './PoolEfficiencyAnalysis';
@@ -27,71 +27,6 @@ const formatPercent = (num) => {
   return `${num.toFixed(2)}%`;
 };
 
-// Cetus API (via proxy)
-async function fetchCetusPools() {
-  try {
-    const res = await fetch('/api/cetus/v2/sui/pools_info');
-    const data = await res.json();
-    if (!data.data?.lp_list) return [];
-
-    return data.data.lp_list.slice(0, 25).map(p => ({
-      id: p.address,
-      name: p.symbol || `${p.coin_a_symbol}/${p.coin_b_symbol}`,
-      dex: 'Cetus',
-      tvl: parseFloat(p.tvl_in_usd) || 0,
-      volume_24h: parseFloat(p.vol_in_usd_24h) || 0,
-      apr: parseFloat(p.apr_24h) || 0,
-      fee_rate: parseFloat(p.fee_rate) / 10000 || 0,
-    }));
-  } catch (e) {
-    console.error('Cetus fetch error:', e);
-    return [];
-  }
-}
-
-// Momentum API (via proxy)
-async function fetchMomentumPools() {
-  try {
-    const res = await fetch('/api/momentum/api/v1/pools');
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-
-    return data.slice(0, 25).map(p => ({
-      id: p.pool_id || p.address,
-      name: p.name || p.symbol,
-      dex: 'Momentum',
-      tvl: parseFloat(p.tvl) || 0,
-      volume_24h: parseFloat(p.volume_24h) || 0,
-      apr: parseFloat(p.apr) || 0,
-      fee_rate: parseFloat(p.fee) || 0,
-    }));
-  } catch (e) {
-    console.error('Momentum fetch error:', e);
-    return [];
-  }
-}
-
-// Bluefin API (via proxy)
-async function fetchBluefinPools() {
-  try {
-    const res = await fetch('/api/bluefin/pools/info');
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-
-    return data.slice(0, 25).map(p => ({
-      id: p.pool_address || p.address,
-      name: p.symbol || p.name,
-      dex: 'Bluefin',
-      tvl: parseFloat(p.tvl) || parseFloat(p.liquidity_usd) || 0,
-      volume_24h: parseFloat(p.volume_24h) || 0,
-      apr: parseFloat(p.apr) || 0,
-      fee_rate: parseFloat(p.fee_rate) || 0,
-    }));
-  } catch (e) {
-    console.error('Bluefin fetch error:', e);
-    return [];
-  }
-}
 
 // Skeleton Component
 const Skeleton = ({ className }) => (
@@ -280,8 +215,8 @@ export default function SuiDexDashboard() {
               <button
                 onClick={() => setViewMode('defillama')}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'defillama'
-                    ? 'bg-[#7D99FD] text-white'
-                    : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#7D99FD] text-white'
+                  : 'text-slate-400 hover:text-white'
                   }`}
               >
                 DefiLlama
@@ -289,8 +224,8 @@ export default function SuiDexDashboard() {
               <button
                 onClick={() => setViewMode('graphql')}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'graphql'
-                    ? 'bg-[#7D99FD] text-white'
-                    : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#7D99FD] text-white'
+                  : 'text-slate-400 hover:text-white'
                   }`}
               >
                 GraphQL
