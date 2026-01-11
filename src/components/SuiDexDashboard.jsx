@@ -199,7 +199,7 @@ export default function SuiDexDashboard() {
   if (viewMode === 'graphql') {
     return (
       <div className="min-h-screen animated-bg text-white p-6 lg:p-8">
-        {/* Header with toggle */}
+        {/* Header with toggle - matches DefiLlama layout */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-[#7D99FD] via-blue-400 to-purple-400 bg-clip-text text-transparent glow-text">
@@ -231,6 +231,13 @@ export default function SuiDexDashboard() {
                 GraphQL
               </button>
             </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#7D99FD] to-blue-600 hover:from-[#9DB5FF] hover:to-blue-500 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-[#7D99FD]/20 hover:shadow-[#7D99FD]/40"
+            >
+              <RefreshCw size={16} />
+              Refresh
+            </button>
           </div>
         </div>
         {/* Render GraphQL Dashboard content */}

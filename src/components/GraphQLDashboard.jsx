@@ -186,7 +186,7 @@ const ColumnSelector = ({ columns, visibleColumns, setVisibleColumns }) => {
     );
 };
 
-const GraphQLDashboard = ({ embedded = false }) => {
+const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
     const [dataSource, setDataSource] = useState('graphql'); // 'graphql' or 'defillama'
     const [pools, setPools] = useState([]);
     const [defiLlamaPools, setDefiLlamaPools] = useState([]);
@@ -387,28 +387,17 @@ const GraphQLDashboard = ({ embedded = false }) => {
                     </div>
                 )}
 
-                {/* Embedded mode: show description and controls */}
+                {/* Embedded mode: show description and timestamp */}
                 {embedded && (
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
+                    <div className="flex items-center justify-between">
                         <p className="text-slate-400 text-sm">
                             Real-time on-chain data via Sui GraphQL RPC
                         </p>
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <ColumnSelector
-                                columns={COLUMN_CONFIG}
-                                visibleColumns={visibleColumns}
-                                setVisibleColumns={setVisibleColumns}
-                            />
-                            <button
-                                onClick={() => fetchAllData(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#7D99FD] to-blue-600 hover:from-[#9DB5FF] hover:to-blue-500 rounded-lg font-medium transition-all duration-300 shadow-lg shadow-[#7D99FD]/20 text-sm"
-                                disabled={loading}
-                                aria-label="Refresh data"
-                            >
-                                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                                Refresh
-                            </button>
-                        </div>
+                        {lastUpdated && (
+                            <span className="text-slate-500 text-sm">
+                                Updated {lastUpdated.toLocaleTimeString()}
+                            </span>
+                        )}
                     </div>
                 )}
 
@@ -479,6 +468,16 @@ const GraphQLDashboard = ({ embedded = false }) => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#7D99FD]"
+                    />
+                </div>
+
+                {/* Pool Table Header with Column Selector */}
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-white">Pool Analytics</h3>
+                    <ColumnSelector
+                        columns={COLUMN_CONFIG}
+                        visibleColumns={visibleColumns}
+                        setVisibleColumns={setVisibleColumns}
                     />
                 </div>
 
