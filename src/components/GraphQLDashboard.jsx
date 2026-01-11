@@ -387,12 +387,7 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
                     </div>
                 )}
 
-                {/* Embedded mode: show description */}
-                {embedded && (
-                    <p className="text-slate-400 text-sm">
-                        Real-time on-chain data via Sui GraphQL RPC
-                    </p>
-                )}
+
 
                 {/* Connection Status (only for GraphQL) */}
                 {dataSource === 'graphql' && (
