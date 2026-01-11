@@ -46,74 +46,77 @@ function getSDK() {
 
 /**
  * Fetch a single pool using the SDK
+ * Prioritizes backend API for pre-computed CLMM TVL, falls back to chain data
  */
 async function fetchPoolById(poolId, name) {
+    const sdk = getSDK();
+
+    // Try backend API first - has pre-computed CLMM TVL from tick liquidity
     try {
-        const sdk = getSDK();
-        // Use sdk.Pool.getByIdFromChain for real-time blockchain data
+        const backendPool = await sdk.Pool.getById(poolId);
+
+        if (backendPool && backendPool.dinamic_stats) {
+            const stats = backendPool.dinamic_stats;
+            // Fee rate is in basis points (e.g., 1622 = 0.1622%)
+            const feeRate = backendPool.fee ? Number(backendPool.fee) / 1e6 : 0.003;
+
+            return {
+                id: poolId,
+                name: backendPool.name || name,
+                dex: 'Full Sail',
+                tvl: Number(stats.tvl || 0),
+                volume_24h: Number(stats.volume_usd_24h || 0),
+                volume_7d: Number(stats.volume_usd_7d || 0),
+                volume_30d: Number(stats.volume_usd_30d || 0),
+                fees_24h: Number(stats.fees_usd_24h || 0),
+                fees_7d: Number(stats.fees_usd_7d || 0),
+                fees_30d: Number(stats.fees_usd_30d || 0),
+                apr: Number(stats.apr || backendPool.full_apr || 0),
+                apyBase: Number(stats.apr || 0),
+                apyReward: 0,
+                stablecoin: name.includes('USD'),
+                feeRate: feeRate,
+                liquidity: String(stats.active_liquidity || backendPool.liquidity || '0'),
+            };
+        }
+    } catch (backendError) {
+        console.warn(`[Full Sail SDK] Backend API failed for ${name}:`, backendError.message);
+    }
+
+    // Fallback to on-chain data (no pre-computed TVL for CLMM)
+    try {
         const chainPool = await sdk.Pool.getByIdFromChain(poolId);
 
         if (!chainPool) {
-            console.warn(`[Full Sail SDK] Pool ${name} not found`);
+            console.warn(`[Full Sail SDK] Pool ${name} not found on chain`);
             return null;
         }
 
-        // Extract data from chain pool
-        const tvl = chainPool.tvl || chainPool.totalValueLocked || 0;
-        const volume24h = chainPool.volume24h || chainPool.dailyVolume || 0;
-        const fees24h = chainPool.fees24h || chainPool.dailyFees || 0;
-        const feeRate = chainPool.feeRate || chainPool.fee || 0.003;
-        const apr = chainPool.apr || chainPool.apy || 0;
+        // For CLMM, raw liquidity doesn't equal TVL - this is an approximation
+        // Real TVL requires iterating price bins, which the backend handles
+        const feeRate = chainPool.feeRate ? Number(chainPool.feeRate) / 1e6 : 0.003;
 
         return {
             id: poolId,
-            name: name,
+            name: chainPool.name || name,
             dex: 'Full Sail',
-            tvl: Number(tvl),
-            volume_24h: Number(volume24h),
-            volume_7d: chainPool.volume7d || 0,
-            volume_30d: chainPool.volume30d || 0,
-            fees_24h: Number(fees24h),
+            tvl: 0, // Cannot compute accurate CLMM TVL from chain data alone
+            volume_24h: 0,
+            volume_7d: 0,
+            volume_30d: 0,
+            fees_24h: 0,
             fees_7d: 0,
             fees_30d: 0,
-            apr: Number(apr),
-            apyBase: chainPool.apyBase || 0,
+            apr: 0,
+            apyBase: 0,
             apyReward: chainPool.apyReward || 0,
             stablecoin: name.includes('USD'),
             feeRate: Number(feeRate),
             liquidity: chainPool.liquidity?.toString() || '0',
             sqrtPrice: chainPool.currentSqrtPrice?.toString() || '0',
         };
-    } catch (error) {
-        console.warn(`[Full Sail SDK] Failed to fetch pool ${name}:`, error.message);
-
-        // Try backend API as fallback
-        try {
-            const sdk = getSDK();
-            const backendPool = await sdk.Pool.getById(poolId);
-            if (backendPool) {
-                return {
-                    id: poolId,
-                    name: name,
-                    dex: 'Full Sail',
-                    tvl: Number(backendPool.tvl || 0),
-                    volume_24h: Number(backendPool.volume24h || 0),
-                    volume_7d: 0,
-                    volume_30d: 0,
-                    fees_24h: Number(backendPool.fees24h || 0),
-                    fees_7d: 0,
-                    fees_30d: 0,
-                    apr: Number(backendPool.apr || 0),
-                    apyBase: 0,
-                    apyReward: 0,
-                    stablecoin: name.includes('USD'),
-                    feeRate: 0.003,
-                };
-            }
-        } catch (backendError) {
-            console.warn(`[Full Sail SDK] Backend fallback failed for ${name}:`, backendError.message);
-        }
-
+    } catch (chainError) {
+        console.warn(`[Full Sail SDK] Chain lookup failed for ${name}:`, chainError.message);
         return null;
     }
 }
