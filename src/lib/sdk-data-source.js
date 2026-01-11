@@ -25,23 +25,27 @@ const cache = { data: null, timestamp: 0 };
 
 /**
  * Normalize pool data to standard schema
+ * Preserves null values to distinguish unavailable data from actual zeros
  */
 function normalizePool(pool) {
+    // Helper: preserve null values, default undefined to 0
+    const toNumber = (val, defaultVal = 0) => val === null ? null : (val ?? defaultVal);
+
     return {
         id: pool.id || pool.pool,
         name: pool.name || pool.symbol || 'Unknown',
         dex: pool.dex,
-        tvl: pool.tvl || 0,
-        volume_24h: pool.volume_24h || 0,
-        volume_7d: pool.volume_7d || 0,
-        volume_30d: pool.volume_30d || 0,
-        fees_24h: pool.fees_24h || 0,
-        fees_7d: pool.fees_7d || 0,
-        fees_30d: pool.fees_30d || 0,
-        feeRate: pool.feeRate || 0.003,
-        apr: pool.apr || pool.apy || 0,
-        apyBase: pool.apyBase || 0,
-        apyReward: pool.apyReward || 0,
+        tvl: toNumber(pool.tvl),
+        volume_24h: toNumber(pool.volume_24h),
+        volume_7d: toNumber(pool.volume_7d),
+        volume_30d: toNumber(pool.volume_30d),
+        fees_24h: toNumber(pool.fees_24h),
+        fees_7d: toNumber(pool.fees_7d),
+        fees_30d: toNumber(pool.fees_30d),
+        feeRate: toNumber(pool.feeRate, 0.003),
+        apr: pool.apr === null ? null : (pool.apr || pool.apy || 0),
+        apyBase: toNumber(pool.apyBase),
+        apyReward: toNumber(pool.apyReward),
         stablecoin: pool.stablecoin || false,
     };
 }

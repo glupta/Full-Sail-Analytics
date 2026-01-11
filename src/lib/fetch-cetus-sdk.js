@@ -141,15 +141,16 @@ function parsePool(pool, knownPool) {
             name: name,
             dex: 'Cetus',
             tvl: tvl,
-            volume_24h: 0, // SDK doesn't provide this directly
-            volume_7d: 0,
-            volume_30d: 0,
-            fees_24h: 0,
-            fees_7d: 0,
-            fees_30d: 0,
-            apr: 0,
-            apyBase: 0,
-            apyReward: 0,
+            // Volume/fees/APR unavailable from Cetus SDK - requires indexer API
+            volume_24h: null,
+            volume_7d: null,
+            volume_30d: null,
+            fees_24h: null,
+            fees_7d: null,
+            fees_30d: null,
+            apr: null,
+            apyBase: null,
+            apyReward: null,
             stablecoin: name.includes('USD') || name.includes('USDC') || name.includes('USDT'),
             feeRate: feeRate || 0.003,
             liquidity: liquidity.toString(),
@@ -185,25 +186,9 @@ export async function fetchCetusPools() {
             if (rawPool) {
                 return parsePool(rawPool, knownPool);
             }
-            // Return minimal data from known pool if fetch fails
-            return {
-                id: knownPool.id,
-                name: knownPool.name,
-                dex: 'Cetus',
-                tvl: 0,
-                volume_24h: 0,
-                volume_7d: 0,
-                volume_30d: 0,
-                fees_24h: 0,
-                fees_7d: 0,
-                fees_30d: 0,
-                apr: 0,
-                apyBase: 0,
-                apyReward: 0,
-                stablecoin: knownPool.name.includes('USD'),
-                feeRate: 0.003,
-                liquidity: '0',
-            };
+            // Pool fetch failed - return null to filter out
+            console.warn(`[Cetus SDK] Pool ${knownPool.name} fetch failed, excluding from results`);
+            return null;
         });
 
         // Wait for all pool fetches (with graceful handling of failures)

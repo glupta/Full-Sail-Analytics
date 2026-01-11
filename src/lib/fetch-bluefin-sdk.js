@@ -118,25 +118,8 @@ export async function fetchBluefinPools() {
             return topPools;
         }
 
-        // Fallback: return known pools with placeholder data (no DefiLlama)
-        console.log('[Bluefin SDK] Spot API unavailable, using placeholder data');
-        return KNOWN_POOLS.map(p => ({
-            id: p.id,
-            name: p.name,
-            dex: 'Bluefin',
-            tvl: 0,
-            volume_24h: 0,
-            volume_7d: 0,
-            volume_30d: 0,
-            fees_24h: 0,
-            fees_7d: 0,
-            fees_30d: 0,
-            apr: 0,
-            apyBase: 0,
-            apyReward: 0,
-            stablecoin: p.name.includes('USD'),
-            feeRate: 0.003,
-        }));
+        // No fallback data - throw error so UI shows connection failed
+        throw new Error('Bluefin Spot API unavailable - no valid pool data');
 
     } catch (error) {
         console.error('[Bluefin SDK] Fetch failed:', error.message);

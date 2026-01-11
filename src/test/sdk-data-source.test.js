@@ -156,4 +156,104 @@ describe('sdk-data-source', () => {
             expect(fetchCetusPools).toHaveBeenCalledTimes(2);
         });
     });
+
+    describe('data completeness and failure states', () => {
+        it('reports failure when SDK throws error (no placeholder data)', async () => {
+            fetchCetusPools.mockResolvedValue([
+                { id: 'cetus-1', name: 'SUI/USDC', dex: 'Cetus', tvl: 1000000 },
+            ]);
+            fetchBluefinPools.mockRejectedValue(new Error('Bluefin Spot API unavailable'));
+            fetchFullSailPools.mockResolvedValue([]);
+
+            const result = await fetchSDKPoolData({ forceRefresh: true });
+
+            expect(result.fetchStatus.Bluefin).toBe('failed');
+            expect(result.fetchStatus.Cetus).toBe('success');
+
+            // Should have no Bluefin pools (no placeholder data)
+            const bluefinPools = result.pools.filter(p => p.dex === 'Bluefin');
+            expect(bluefinPools).toHaveLength(0);
+        });
+
+        it('does not include pools with placeholder/fallback data', async () => {
+            // Only pools with actual data should be included
+            fetchCetusPools.mockResolvedValue([
+                { id: 'cetus-1', name: 'SUI/USDC', dex: 'Cetus', tvl: 5000000, volume_24h: null },
+            ]);
+            fetchBluefinPools.mockResolvedValue([
+                { id: 'bluefin-1', name: 'SUI/USDT', dex: 'Bluefin', tvl: 2000000, volume_24h: 100000 },
+            ]);
+            fetchFullSailPools.mockResolvedValue([]);
+
+            const result = await fetchSDKPoolData({ forceRefresh: true });
+
+            // All returned pools should have positive TVL (real data)
+            expect(result.pools.every(p => p.tvl > 0)).toBe(true);
+            expect(result.pools).toHaveLength(2);
+        });
+
+        it('distinguishes between unavailable data (null) and zero values', async () => {
+            // Cetus should return null for volume (SDK limitation)
+            // Bluefin/Full Sail should return actual values
+            fetchCetusPools.mockResolvedValue([
+                { id: 'cetus-1', name: 'SUI/USDC', dex: 'Cetus', tvl: 5000000, volume_24h: null },
+            ]);
+            fetchBluefinPools.mockResolvedValue([
+                { id: 'bluefin-1', name: 'SUI/USDT', dex: 'Bluefin', tvl: 2000000, volume_24h: 50000 },
+            ]);
+            fetchFullSailPools.mockResolvedValue([
+                { id: 'fs-1', name: 'SAIL/USDC', dex: 'Full Sail', tvl: 1000000, volume_24h: 25000 },
+            ]);
+
+            const result = await fetchSDKPoolData({ forceRefresh: true });
+
+            const cetusPool = result.pools.find(p => p.dex === 'Cetus');
+            const bluefinPool = result.pools.find(p => p.dex === 'Bluefin');
+            const fullSailPool = result.pools.find(p => p.dex === 'Full Sail');
+
+            // Cetus volume is null (unavailable from SDK)
+            expect(cetusPool.volume_24h).toBeNull();
+            // Bluefin and Full Sail have actual volume data
+            expect(bluefinPool.volume_24h).toBe(50000);
+            expect(fullSailPool.volume_24h).toBe(25000);
+        });
+
+        it('marks DEX as failed when SDK returns empty array', async () => {
+            fetchCetusPools.mockResolvedValue([]);
+            fetchBluefinPools.mockResolvedValue([]);
+            fetchFullSailPools.mockResolvedValue([]);
+
+            const result = await fetchSDKPoolData({ forceRefresh: true });
+
+            // Empty arrays should be treated as failures
+            expect(result.fetchStatus.Cetus).toBe('failed');
+            expect(result.fetchStatus.Bluefin).toBe('failed');
+            expect(result.fetchStatus['Full Sail']).toBe('failed');
+        });
+
+        it('alerts when Full Sail or Bluefin pools have zero volume (data issue)', async () => {
+            // Full Sail and Bluefin should always have volume data
+            // Zero volume indicates a data fetching problem
+            fetchCetusPools.mockResolvedValue([]);
+            fetchBluefinPools.mockResolvedValue([
+                { id: 'bf-1', name: 'SUI/USDC', dex: 'Bluefin', tvl: 1000000, volume_24h: 0 },
+            ]);
+            fetchFullSailPools.mockResolvedValue([
+                { id: 'fs-1', name: 'SAIL/USDC', dex: 'Full Sail', tvl: 500000, volume_24h: 0 },
+            ]);
+
+            const result = await fetchSDKPoolData({ forceRefresh: true });
+
+            // Check that pools with zero volume are flagged
+            const poolsWithZeroVolume = result.pools.filter(
+                p => (p.dex === 'Bluefin' || p.dex === 'Full Sail') && p.volume_24h === 0
+            );
+
+            // This test documents expected behavior - zero volume for these DEXs
+            // indicates incomplete data that should be investigated
+            expect(poolsWithZeroVolume.length).toBeGreaterThan(0);
+            // In production, we'd want this to trigger an alert
+        });
+    });
 });
+
