@@ -231,6 +231,9 @@ export default function SuiDexDashboard() {
                 GraphQL
               </button>
             </div>
+            <span className="text-slate-500 text-sm">
+              Updated {new Date().toLocaleTimeString()}
+            </span>
             <button
               onClick={() => window.location.reload()}
               className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#7D99FD] to-blue-600 hover:from-[#9DB5FF] hover:to-blue-500 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-[#7D99FD]/20 hover:shadow-[#7D99FD]/40"

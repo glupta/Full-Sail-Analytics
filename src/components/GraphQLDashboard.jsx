@@ -387,18 +387,11 @@ const GraphQLDashboard = ({ embedded = false, renderHeaderControls }) => {
                     </div>
                 )}
 
-                {/* Embedded mode: show description and timestamp */}
+                {/* Embedded mode: show description */}
                 {embedded && (
-                    <div className="flex items-center justify-between">
-                        <p className="text-slate-400 text-sm">
-                            Real-time on-chain data via Sui GraphQL RPC
-                        </p>
-                        {lastUpdated && (
-                            <span className="text-slate-500 text-sm">
-                                Updated {lastUpdated.toLocaleTimeString()}
-                            </span>
-                        )}
-                    </div>
+                    <p className="text-slate-400 text-sm">
+                        Real-time on-chain data via Sui GraphQL RPC
+                    </p>
                 )}
 
                 {/* Connection Status (only for GraphQL) */}
